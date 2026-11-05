@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>闲鱼搬运工作台</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#fafaf9;--card:#fff;--border:#e8e5df;--border2:#e0ddd5;--t1:#1f2328;--t2:#6f6c64;--t3:#9a978f;--t4:#b5b2a9;--row:#f4f2ee;--hover:#f6f5f1;--focus:#4f7cff;--selbg:#eef3ff;--selbd:#c9d8ff;--shadow:0 8px 30px rgba(30,28,20,.10)}
+body.dark{--bg:#1c1b19;--card:#262521;--border:#3a3833;--border2:#46433d;--t1:#f0eee9;--t2:#b5b2a9;--t3:#8a877f;--t4:#6f6d66;--row:#302e2a;--hover:#302e2a;--selbg:#2d3a55;--selbd:#4a6090;--shadow:0 8px 30px rgba(0,0,0,.4)}
+body{font-family:-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--t1);font-size:13px;line-height:1.55}
+.wrap{max-width:1500px;margin:0 auto;padding:20px 22px 70px}
+header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px;gap:16px;flex-wrap:wrap}
+h1{font-size:21px;font-weight:700;letter-spacing:.3px}
+.sub{font-size:11.5px;color:var(--t3);margin-top:4px}
+.hbtns{display:flex;gap:7px;align-items:center}
+.btn{border:1px solid var(--border2);background:var(--card);color:var(--t2);font-size:12px;padding:6px 13px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--focus);color:var(--t1)}
+.btn.primary{background:var(--focus);border-color:var(--focus);color:#fff;font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.danger{color:#b5453c;border-color:#e9c9c5}
+.steps{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:0}
+.step{display:flex;align-items:center;gap:9px;padding:9px 18px 11px;border-bottom:2px solid transparent;color:var(--t3);cursor:pointer;font-size:13px;white-space:nowrap}
+.step:hover{color:var(--t1)}
+.step.on{border-bottom-color:var(--focus);color:var(--t1);font-weight:600}
+.step i{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--row);color:var(--t2);align-items:center;justify-content:center;font-size:11px;font-style:normal}
+.step.on i{background:var(--focus);color:#fff}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:17px 19px;margin-bottom:14px}
+.card h2{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h2 small{font-weight:400;color:var(--t3);font-size:11px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.kpi .k{font-size:11px;color:var(--t3)}
+.kpi .v{font-size:22px;font-weight:700;margin-top:4px}
+.kpi .v small{font-size:11px;color:var(--t3);font-weight:500;margin-left:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--row)}
+th{color:var(--t3);font-weight:500;font-size:11px}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:11.5px}
+.muted{color:var(--t3)}
+.hint{background:var(--selbg);border:1px solid var(--selbd);border-radius:8px;padding:11px 14px;font-size:12px;color:var(--t2);margin-bottom:14px}
+.hint b{color:var(--t1)}
+.hint ul{margin:6px 0 0 16px}
+.hint li{margin:3px 0}
+.bar{display:flex;height:9px;border-radius:5px;overflow:hidden;margin:9px 0 5px;background:var(--row)}
+.bar span{height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--t2);margin-top:7px}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:5px}
+/* 工具条 */
+.tools{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:13px}
+.chip{border:1px solid var(--border2);background:var(--card);color:var(--t2);font-size:11.5px;padding:5px 11px;border-radius:999px;cursor:pointer}
+.chip:hover{border-color:var(--focus);color:var(--t1)}
+.chip.on{background:var(--selbg);border-color:var(--selbd);color:var(--focus);font-weight:600}
+input[type=text],input[type=number],select,textarea{border:1px solid var(--border2);background:var(--card);color:var(--t1);border-radius:7px;padding:7px 10px;font-size:12.5px;outline:none;font-family:inherit;width:100%}
+input:focus,textarea:focus,select:focus{border-color:var(--focus)}
+input.search{width:210px;flex:none}
+.spacer{flex:1}
+/* 商品网格 */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:11px}
+.gcard{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .15s,transform .15s;position:relative}
+.gcard:hover{border-color:var(--focus);transform:translateY(-2px)}
+.gcard.off{opacity:.52}
+.thumb{width:100%;height:132px;object-fit:cover;background:var(--row);display:block}
+.tholder{width:100%;height:132px;background:var(--row);display:flex;align-items:center;justify-content:center;color:var(--t4);font-size:11px}
+.gbody{padding:10px 11px 11px}
+.gtitle{font-size:12.5px;font-weight:600;line-height:1.4;height:35px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.gmeta{display:flex;justify-content:space-between;align-items:center;margin-top:7px;font-size:11px;color:var(--t3)}
+.price{font-size:15px;font-weight:700;color:var(--t1)}
+.tag{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;white-space:nowrap}
+.t-ok{background:#e9f6ee;color:#2f8f5b}.t-y{background:#fdf4e0;color:#a9771b}.t-o{background:#fdf0e6;color:#c06a26}.t-r{background:#fceceb;color:#b5453c}.t-n{background:var(--row);color:var(--t2)}
+body.dark .t-ok{background:#24402f;color:#7ee787}body.dark .t-y{background:#473c22;color:#e3b341}body.dark .t-o{background:#4a3323;color:#e8a56a}body.dark .t-r{background:#4a2a28;color:#f09a92}
+.warn{font-size:10.5px;color:#b5453c;margin-top:5px}
+.check{position:absolute;top:8px;left:8px;width:19px;height:19px;border-radius:5px;border:1.5px solid #fff;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;box-shadow:0 1px 5px rgba(0,0,0,.25)}
+.check.on{background:var(--focus);border-color:var(--focus)}
+/* 抽屉 */
+.mask{position:fixed;inset:0;background:rgba(20,18,14,.42);z-index:40;display:none}
+.mask.on{display:block}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(660px,94vw);background:var(--bg);z-index:50;box-shadow:-8px 0 34px rgba(0,0,0,.18);transform:translateX(102%);transition:transform .22s;display:flex;flex-direction:column}
+.drawer.on{transform:translateX(0)}
+.dhead{padding:15px 19px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;background:var(--card)}
+.dhead h3{font-size:15px;font-weight:600;line-height:1.4}
+.dbody{overflow-y:auto;padding:16px 19px 30px;flex:1}
+.dfoot{padding:12px 19px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;background:var(--card)}
+.sec{margin-bottom:18px}
+.sec>label,.sec>.lab{display:block;font-size:11.5px;color:var(--t3);margin-bottom:6px;font-weight:600;letter-spacing:.3px}
+.orig{background:var(--row);border-radius:7px;padding:9px 11px;font-size:11.5px;color:var(--t2);max-height:110px;overflow-y:auto;white-space:pre-wrap;margin-bottom:8px}
+.pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:9px}
+.pic{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--card);position:relative}
+.pic img{width:100%;height:94px;object-fit:cover;display:block;background:var(--row)}
+.pic.del{opacity:.35;filter:grayscale(1)}
+.pic .ptags{position:absolute;top:4px;left:4px;right:4px;display:flex;gap:3px;flex-wrap:wrap}
+.ptag{font-size:9px;background:rgba(180,60,50,.92);color:#fff;border-radius:3px;padding:1px 4px}
+.ptag.blue{background:rgba(60,90,190,.92)}
+.pic .pfoot{padding:5px 6px}
+.pic select{font-size:10.5px;padding:3px 5px;border-radius:5px}
+.pic .pn{font-size:9.5px;color:var(--t3);margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+textarea{resize:vertical;min-height:118px;line-height:1.6}
+/* 发布页 */
+.pgrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:14px;align-items:start}
+@media(max-width:980px){.pgrid{grid-template-columns:1fr}}
+.stat{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--row);font-size:12px}
+.stat:last-child{border:0}
+.prog{height:9px;background:var(--row);border-radius:5px;overflow:hidden;margin:10px 0}
+.prog i{display:block;height:100%;background:var(--focus);width:0;transition:width .3s}
+.logbox{background:#16181c;color:#d5d9e0;border-radius:8px;padding:11px 13px;height:290px;overflow-y:auto;font-family:Consolas,"Courier New",monospace;font-size:11px;line-height:1.65;white-space:pre-wrap;word-break:break-all}
+.logbox .ok{color:#7ee787}.logbox .er{color:#ff9b93}.logbox .dim{color:#8b93a5}
+.ck{display:flex;gap:8px;align-items:flex-start;font-size:12px;color:var(--t2);margin:11px 0;cursor:pointer}
+.ck input{width:15px;height:15px;margin-top:2px;flex:none}
+.pillbox{display:inline-flex;align-items:center;gap:6px;font-size:11px;padding:3px 9px;border-radius:999px;background:var(--row);color:var(--t2)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--t4)}
+.dot.g{background:#2f8f5b}.dot.r{background:#b5453c}.dot.b{background:var(--focus);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.3}}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#1f2328;color:#fff;padding:10px 18px;border-radius:8px;font-size:12.5px;opacity:0;transition:.25s;z-index:90;pointer-events:none;box-shadow:var(--shadow)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.code{background:var(--row);border-radius:8px;padding:11px 13px;font-family:Consolas,monospace;font-size:11px;color:var(--t2);white-space:pre-wrap;word-break:break-all;max-height:190px;overflow:auto}
+.hide{display:none!important}
+/* 项目 / 导入 */
+.importer{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.importer select{width:auto!important;min-width:290px;flex:1 1 290px}
+.importer input.namein{width:190px!important;flex:none}
+.importer .btn{flex:none}
+.pathrow{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.pathrow input{width:auto!important;flex:1 1 320px}
+.prtag{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:600;background:var(--selbg);color:var(--focus)}
+/* 批量工具条 / 弹窗 / 清洗对比 */
+.vsep{width:1px;height:20px;background:var(--border2);margin:0 3px;flex:none}
+.statbar{background:var(--row);border:1px solid var(--border);border-radius:8px;padding:9px 13px;font-size:11.5px;color:var(--t2);margin-bottom:13px;line-height:1.7}
+.statbar b{color:var(--t1)}
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-48%) scale(.98);width:min(1020px,94vw);max-height:87vh;background:var(--card);border:1px solid var(--border);border-radius:12px;z-index:60;box-shadow:var(--shadow);display:none;flex-direction:column;opacity:0;transition:opacity .18s,transform .18s}
+.modal.on{display:flex;opacity:1;transform:translate(-50%,-50%) scale(1)}
+.mhead{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.mhead h3{font-size:15px;font-weight:600}
+.mbody{overflow:auto;padding:16px 18px;flex:1}
+.mfoot{padding:11px 18px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cmpitem{border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:11px}
+.cmpitem .ct{font-size:12px;font-weight:600;margin-bottom:8px}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+@media(max-width:700px){.cmp{grid-template-columns:1fr}}
+.cmp .lab{font-size:11px;color:var(--t3);margin-bottom:5px}
+.cmp img,.cmp .ph{width:100%;height:200px;object-fit:contain;background:var(--row);border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--t3);font-size:11.5px;text-align:center;padding:10px}
+.cmprow{display:grid;grid-template-columns:1fr 1fr;gap:11px;border-bottom:1px solid var(--row);padding:9px 0;font-size:11.5px}
+.cmprow .old{color:var(--t3);text-decoration:line-through}
+.cmprow .new{color:var(--t1);font-weight:600}
+.modalMask{position:fixed;inset:0;background:rgba(20,18,14,.42);z-index:55;display:none}
+.modalMask.on{display:block}
+</style></head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>闲鱼搬运工作台</h1><div class="sub" id="sub">本地运行 · 数据不出这台电脑 · 环境 → 导出包 → 清洗 → 发布</div></div>
+  <div class="hbtns">
+    <span class="pillbox"><i class="dot g" id="dot"></i><span id="conn">连接中</span></span>
+    <button class="btn" onclick="toggleTheme()">深色 / 浅色</button>
+    <button class="btn" onclick="showHelp()">使用说明</button>
+  </div>
+</header>
+
+<div class="steps">
+  <div class="step on" data-s="0" onclick="go(0)"><i>1</i>环境准备</div>
+  <div class="step" data-s="1" onclick="go(1)"><i>2</i>导出包</div>
+  <div class="step" data-s="2" onclick="go(2)"><i>3</i>清洗与改写</div>
+  <div class="step" data-s="3" onclick="go(3)"><i>4</i>发布</div>
+</div>
+
+<!-- ============ STEP 0 环境准备 ============ -->
+<div id="s0">
+  <div class="hint"><b>换新电脑 / 第一次用，先待在这一页。</b>
+    缺什么一目了然：点「一键安装依赖」补齐（联网，每台电脑一次），再「重新自检」，全绿就能进下一步。</div>
+  <div class="card"><h2>环境自检 <small>只读不改，缺什么直接列出来</small></h2>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn primary" onclick="runEnvCheck()">重新自检</button>
+      <button class="btn" id="btnEnvInstall" onclick="envInstall()">一键安装依赖</button>
+      <span class="muted" style="align-self:center;font-size:11.5px" id="envState">打开本页时会自动先检一遍</span>
+    </div>
+    <div id="envList" style="margin-top:12px"></div>
+    <div id="envLog" style="margin-top:10px;display:none"></div>
+  </div>
+  <div class="card"><h2>装的都是什么 <small>requirements.txt，装进本机 Python，不上传任何东西</small></h2>
+    <table><tr><th>包</th><th>干什么用</th><th style="width:70px">必需</th></tr>
+      <tr><td class="mono">playwright</td><td>驱动本机 Edge：弹窗扫码导出商品、拦截接口</td><td>必需</td></tr>
+      <tr><td class="mono">opencv (cv2)</td><td>识别并抹掉二维码、条形码，图片裁剪</td><td>必需</td></tr>
+      <tr><td class="mono">numpy</td><td>图片处理底层依赖</td><td>必需</td></tr>
+      <tr><td class="mono">pillow</td><td>图片读写与压缩</td><td>可选</td></tr>
+      <tr><td class="mono">rapidocr-onnxruntime</td><td>扫图时识别面单上的文字</td><td>可选</td></tr>
+      <tr><td class="mono">openpyxl</td><td>读 A 号人工决策表（老项目）</td><td>可选</td></tr>
+    </table>
+    <div class="muted" style="margin-top:8px;font-size:11px">
+      另外两样不在 pip 里：<b>本机 Edge</b>（Win10/11 自带，用来弹扫码窗口）和
+      <b>goofish-cli</b>（只在真实发布时用，发布页有专门的一键安装按钮）。
+      换电脑时「数据/浏览器资料」别拷走，里面是登录态，到新电脑重新扫码更安全。
+    </div>
+  </div>
+  <div style="text-align:right"><button class="btn primary" onclick="go(1)">环境没问题，去导出包 →</button></div>
+</div>
+
+<!-- ============ STEP 1 ============ -->
+<div id="s1" class="hide">
+  <div class="hint"><b>一个闲鱼号 = 一个项目。</b>要搬别的号，把导出的 ZIP 放进
+    <span class="mono" id="hintInbox">数据/收件箱</span>（或填任意路径），在下面导入即可。
+    导入会自动解压、扫二维码/水印/面单、给文案分档，然后切过去；
+    <b>各号的改动、状态和发布包完全隔离</b>，不会串到 A 号。
+    整个工具包可以复制到任何电脑、改名、换盘符；数据位置在下面随时可改。
+  </div>
+
+  <div class="card"><h2>当前项目 <span class="prtag" id="curBadge">—</span></h2><div id="curInfo"></div></div>
+
+  <div class="card"><h2>导入另一个号的商品 <small>忙鱼导出的 ZIP，原包不动</small></h2>
+    <div class="importer">
+      <select id="zipSel"></select>
+      <input class="namein" id="accName" type="text" placeholder="给这个号起个名：闲鱼 C 号">
+      <button class="btn primary" id="btnImport" onclick="doImport()">导入并切换</button>
+    </div>
+    <div class="pathrow"><label class="ck" style="margin:0;flex:none"><input type="checkbox" id="usePath" onchange="renderZips()"><span>ZIP 不在收件箱，改填绝对路径</span></label>
+      <input id="zipPath" type="text" placeholder="D:\闲鱼\busyfish-backup-xxxx.zip"></div>
+    <div id="impProg" class="hide" style="margin-top:11px">
+      <div class="prog"><i id="impBar"></i></div>
+      <div class="muted" id="impTxt" style="font-size:11.5px">准备中…</div>
+    </div>
+    <div class="muted" style="margin-top:9px;font-size:11px">导入后默认<b>一件都不纳入</b>发布包：文案还是原号原文，必须逐件重写，避免同图同文被判重复铺货。</div>
+  </div>
+
+  <div class="card"><h2>一键导出新号商品 <small>不用忙鱼导出，没有导出额度限制</small></h2>
+    <div class="importer">
+      <input class="namein" id="expName" type="text" placeholder="给要导的号起个名（可空，默认用日期）">
+      <input type="number" id="expLimit" value="0" min="0" style="width:78px;flex:none" title="0=全部">
+      <span class="muted" style="flex:none;font-size:11px">最多导几件（0=全部）</span>
+      <button class="btn primary" id="btnExport" onclick="startExport()">导出（弹浏览器扫码登录）</button>
+      <button class="btn" id="btnExpStop" style="display:none" onclick="stopExport()">停止</button>
+    </div>
+    <div class="muted" style="margin-top:8px;font-size:11px">
+      点按钮会弹出<b>独立 Edge 窗口</b> → 在里面登录要导出的闲鱼号（首次扫码，之后登录态记住、免扫）→
+      自动读商品列表、下图片、打包 ZIP 放进收件箱；完成后在上方下拉框直接选它「导入并切换」。
+      件数多时别关窗口，跑完才生成 ZIP；遇到滑块请在窗口里人工过一下。
+    </div>
+    <div id="expLog" style="margin-top:10px;display:none"></div>
+  </div>
+
+  <div class="card"><h2>数据放在哪 <small>默认跟着工具包走，可改到任意磁盘 / U 盘</small></h2>
+    <div class="pathrow">
+      <input id="dataDir" type="text" placeholder="数据（相对工具包）或 D:\闲鱼数据">
+      <button class="btn" onclick="applyDataDir()">应用并重载</button>
+    </div>
+    <div class="muted" style="margin-top:9px;font-size:11px">
+      当前：<span class="mono" id="dataNow">—</span>　收件箱：<span class="mono" id="inboxNow">—</span>　发布包：<span class="mono" id="pkgNow">—</span>
+    </div>
+    <div class="muted" style="margin-top:5px;font-size:11px">
+      也可以直接改工具包根目录 <span class="mono">config.json</span> 里的 <span class="mono">data_dir</span>。填相对路径表示数据跟着工具包走，填绝对路径表示数据单独放别处；改完程序和数据都不会丢，只是换了个位置。
+    </div>
+  </div>
+
+  <div class="card"><h2>已导入的项目 <small>点「切换」换号，改动自动保存</small></h2><div id="projList"></div></div>
+
+  <div class="kpis" id="kpis"></div>
+  <div class="card"><h2>风险分档 <small>当前项目的文案 + 图片双重扫描</small></h2>
+    <div class="bar" id="riskbar"></div>
+    <div class="legend" id="risklegend"></div>
+  </div>
+  <div class="card"><h2>四步怎么串</h2>
+    <table><tr><th style="width:70px">步骤</th><th>做什么</th><th style="width:170px">产物</th></tr>
+    <tr><td>① 环境</td><td>新电脑先把「环境准备」页跑成全绿（一键装依赖 + 自检），一次就够</td><td class="mono">requirements.txt</td></tr>
+    <tr><td>② 导出</td><td>点上方「一键导出新号商品」弹浏览器扫码登录自动导出（或忙鱼导出 ZIP）→ 点「导入并切换」，自动解压 + 扫图 + 文案分档</td><td class="mono">数据/收件箱/…zip</td></tr>
+    <tr><td>③ 清洗</td><td>重写标题描述、抹二维码、删面单、裁水印、剔违规品 → 生成发布包</td><td class="mono">数据/发布包/…/</td></tr>
+    <tr><td>④ 发布</td><td>按「一商品一文件夹」逐件喂给 goofish-cli，限速 1 件/分钟、件数自己填</td><td class="mono">publish_all.py</td></tr></table>
+  </div>
+  <div style="text-align:right"><button class="btn primary" onclick="go(2)">进入下一步：清洗 →</button></div>
+</div>
+
+<!-- ============ STEP 2 ============ -->
+<div id="s2" class="hide">
+  <div class="hint" id="s2hint"></div>
+  <div class="tools">
+    <button class="chip on" data-f="all" onclick="setFilter('all',this)">全部 <span id="c-all">0</span></button>
+    <button class="chip" data-f="可搬" onclick="setFilter('可搬',this)">可搬 <span id="c-ok">0</span></button>
+    <button class="chip" data-f="改后搬" onclick="setFilter('改后搬',this)">改后搬 <span id="c-y">0</span></button>
+    <button class="chip" data-f="需重拍" onclick="setFilter('需重拍',this)">需重拍 <span id="c-o">0</span></button>
+    <button class="chip" data-f="放弃" onclick="setFilter('放弃',this)">放弃 <span id="c-r">0</span></button>
+    <input class="search" id="q" type="text" placeholder="搜标题 / 商品ID" oninput="render()">
+    <span class="spacer"></span>
+    <label class="ck" style="margin:0;flex:none"><input type="checkbox" id="selAll" onchange="toggleSelAll()"><span>全选当前列表 <b id="visCount">0</b> 件</span></label>
+  </div>
+  <div class="tools">
+    <button class="btn primary" onclick="bulkInclude('all','all')">全选（全部商品）</button>
+    <button class="btn" onclick="bulkInclude('invert','visible')">反选当前</button>
+    <button class="btn" onclick="bulkInclude('none','all')">全部取消</button>
+    <button class="btn" onclick="bulkInclude('risk','all')">按风险纳入</button>
+    <span class="vsep"></span>
+    <button class="btn primary" onclick="autoRewrite(false)">一键自动重写文案</button>
+    <button class="btn" onclick="autoRewrite(true)">覆盖重生成</button>
+    <button class="btn" onclick="showCompare()">改写对照表</button>
+    <span class="vsep"></span>
+    <button class="btn" onclick="smartClean()">一键智能清洗</button>
+    <button class="btn" onclick="showCleanPreview()">看清洗效果</button>
+    <button class="btn" onclick="rulesCheck()">规则体检</button>
+    <span class="spacer"></span>
+    <button class="btn primary" onclick="buildPkg()">生成发布包</button>
+  </div>
+  <div class="statbar" id="cleanStat">正在读取图片处理动作…</div>
+  <div class="card" id="rulesCard" style="margin-top:14px;display:none">
+    <h2>闲鱼平台规则体检 <small class="muted" id="rulesSummary" style="font-weight:400;font-size:11.5px"></small></h2>
+    <div id="rulesList" style="max-height:320px;overflow:auto"></div>
+  </div>
+  <details class="card" style="margin-top:14px">
+    <summary style="cursor:pointer;font-weight:600">📋 闲鱼平台规则速查（发布前过一遍，点开看全文）</summary>
+    <div style="font-size:12px;line-height:1.9;margin-top:10px;color:var(--t2)">
+      <b style="color:#b5453c">红线（碰到就下架/封号）</b><br>
+      ① <b>禁止站外引流</b>：标题、描述、图片、昵称里都不能留微信号/QQ/手机号/抖音号，也不能说「看主页」「私聊我」——所以搬家时图里的二维码、联系方式必须抹掉，文案里的联系方式必须去掉。<br>
+      ② <b>禁止售假</b>：「高仿 / 精仿 / A货 / 复刻 / 原单 / 尾单 / 1:1」这些词是售假红线，品牌方投诉直接扣分；品牌词本身可以带（自用闲置正品），但别用来背书夸宣传。<br>
+      ③ <b>禁售限售类目</b>：食品药品保健品、医疗器械、发票票据、账号出租出售、代写代考、外挂代练、动植物保护制品等，别发。<br>
+      ④ <b>禁止绝对化用语</b>：「最好 / 第一 / 顶级 / 全网最低 / 100%」等广告法禁用语。<br><br>
+      <b style="color:#8a6d1a">高频扣分点（搬家场景尤其注意）</b><br>
+      ⑤ <b>重复铺货</b>：同图同文在多个号/多次发布，会被限流、下架甚至封号——所以每件都要<b>改写文案</b>（不是同义词替换），图片要抹码去水印。<br>
+      ⑥ <b>描述要真实完整</b>：空描述、描述与实物不符可被投诉「货不对板」；成色、瑕疵要写明。<br>
+      ⑦ <b>类目要放对</b>：错放类目会被下架（发布页已带类目兜底重试）。<br>
+      ⑧ <b>价格别异常</b>：0 元 / 明显低价会被判低价引流。<br>
+      ⑨ <b>发布节奏</b>：写操作限速 1 件/分钟，连发易触发风控（发布页已带护栏，别手动绕）。<br>
+      ⑩ <b>图片规范</b>：首图别带大面积水印、促销贴纸、拼图；扫出过二维码/联系方式/面单的图必须处理后再生效。
+    </div>
+  </details>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- ============ STEP 3 ============ -->
+<div id="s3" class="hide">
+  <div class="hint"><b>默认演练，不真发。</b>
+    发货方式不再强写「包邮」——默认取商品原物流（实物多为包邮）；要改可在每件抽屉里选「无需邮寄 / 一口价 / 按距离计费」。
+    发布几件自己填，不锁死数量。</div>
+  <div class="pgrid">
+    <div>
+      <div class="card"><h2>发布包</h2><div id="pkginfo"></div>
+        <div style="margin-top:12px;display:flex;gap:7px;flex-wrap:wrap">
+          <button class="btn" onclick="go(2)">← 回去改</button>
+          <button class="btn" onclick="buildPkg()">重新生成</button>
+        </div>
+      </div>
+      <div class="card"><h2>商品清单 <span class="muted" id="pkgsummary" style="font-weight:400;font-size:11.5px"></span></h2>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px">
+          <button class="btn" onclick="selPkg('unpub')">全选未发布</button>
+          <button class="btn" onclick="selPkg('all')">全选</button>
+          <button class="btn" onclick="selPkg('none')">清空</button>
+          <span class="muted" style="align-self:center;font-size:11.5px" id="pkgsel"></span>
+        </div>
+        <div id="pkglist" style="max-height:330px;overflow:auto"></div>
+      </div>
+      <div class="card"><h2>goofish-cli 部署</h2>
+        <div id="cliinfo"></div>
+        <div style="margin-top:12px;display:flex;gap:7px;flex-wrap:wrap">
+          <button class="btn" id="btnInstall" onclick="startInstall()">一键安装 goofish-cli</button>
+          <button class="btn primary" id="btnQr" style="display:none" onclick="startAuth('qr')">扫码登录（弹浏览器）</button>
+          <button class="btn" id="btnAuto" style="display:none" onclick="startAuth('auto')">导入浏览器登录态</button>
+          <button class="btn" id="btnAuthCancel" style="display:none" onclick="cancelAuth()">取消</button>
+        </div>
+        <div id="cliLog" style="margin-top:10px;display:none"></div>
+        <div id="cliQr" style="margin-top:10px;display:none"></div>
+        <details style="margin-top:11px"><summary class="muted" style="cursor:pointer">想自己敲命令？</summary>
+          <div class="code" style="margin-top:8px">pip install goofish-cli            # 或点上方「一键安装」
+goofish auth login            # 自动读取本机浏览器里已登录的闲鱼（Edge/Chrome）
+goofish auth status           # 检查登录态（页面按钮都用它判断）
+python publish_all.py         # 演练
+python publish_all.py --live  # 真发，间隔 60 秒，发几件自己定
+
+注：页面「扫码登录（弹浏览器）」自动用本机 Edge 弹窗，无需装 Chrome；
+    若自己敲命令，goofish auth login --qr 需要系统已装 Chrome 才会弹窗。</div>
+        </details>
+      </div>
+      <div class="card"><h2>节奏护栏</h2>
+        <div class="stat"><span>写操作限速</span><b>1 件 / 分钟</b></div>
+        <div class="stat"><span>最多发几件</span><input type="number" id="pubCount" value="0" min="0" style="width:64px"><span class="muted" style="font-size:11px">0=勾选的全部</span></div>
+        <div class="stat"><span>失败处理</span><b>自动跳过继续发（连败 5 件才停）</b></div>
+        <div class="stat"><span>限速处理</span><b>自动等待后重试</b></div>
+        <div class="stat"><span>熔断</span><b>遇 RGV587 等 10 分钟</b></div>
+        <div class="stat"><span>发布后</span><b>回读商品列表核对</b></div>
+      </div>
+    </div>
+    <div>
+      <div class="card"><h2>发布控制 <span id="pubstate" class="pillbox"><i class="dot"></i>空闲</span></h2>
+        <label class="ck"><input type="checkbox" id="confirm"><span>我已确认：B 号已登录、图片已核对、要发的件已在「商品清单」里勾好（不勾=发全部未发布）。勾选后「真实发布」才可点。</span></label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px">
+          <button class="btn primary" id="bstart" onclick="startPub('dry')">开始演练</button>
+          <button class="btn danger" id="blive" onclick="startPub('live')" disabled>真实发布</button>
+          <button class="btn" id="bstop" onclick="stopPub()" disabled>停止</button>
+        </div>
+        <div class="prog"><i id="progbar"></i></div>
+        <div class="muted" id="progtxt" style="font-size:11.5px">尚未开始</div>
+      </div>
+      <div class="card"><h2>实时日志 <small>只记本机操作，不上传</small></h2><div class="logbox" id="logbox"></div></div>
+      <div id="pkgmodal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:60" onclick="if(event.target===this)closePkgModal()">
+        <div id="pkgmodalBody" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:86vh;overflow:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px"></div>
+      </div>
+      <div class="card"><h2>产物位置</h2><div class="code" id="outpaths"></div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 抽屉 -->
+<div class="mask" id="mask" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="dhead"><div><h3 id="dtitle">—</h3><div class="sub mono" id="dmeta">—</div></div>
+    <button class="btn" onclick="closeDrawer()">关闭</button></div>
+  <div class="dbody" id="dbody"></div>
+  <div class="dfoot">
+    <label class="ck" style="margin:0"><input type="checkbox" id="dinclude"><span>纳入发布包</span></label>
+    <span class="spacer"></span><span class="muted" id="dsaved" style="font-size:11px">改动自动保存</span>
+    <button class="btn primary" onclick="saveAndClose()">保存并关闭</button>
+  </div>
+</div>
+<div class="modalMask" id="modalMask" onclick="closeModal()"></div>
+<div class="modal" id="modal">
+  <div class="mhead"><h3 id="mTitle">—</h3><button class="btn" onclick="closeModal()">关闭</button></div>
+  <div class="mbody" id="mBody"></div>
+  <div class="mfoot" id="mFoot"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let S={},ITEMS=[],FILTER='all',CUR=null,DARK=false,TIMER=null,IMP=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const api=async(p,opt)=>{const r=await fetch(p,opt);if(!r.ok)throw new Error((await r.json().catch(()=>({error:r.statusText}))).error||r.statusText);return r.json()};
+const post=(p,b)=>api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});
+let TT=null;
+function toast(m){$('toast').textContent=m;$('toast').classList.add('on');clearTimeout(TT);TT=setTimeout(()=>$('toast').classList.remove('on'),2400)}
+function toggleTheme(){DARK=!DARK;document.body.classList.toggle('dark',DARK);localStorage.setItem('wb-dark',DARK?'1':'0')}
+function go(n){document.querySelectorAll('.step').forEach(e=>e.classList.toggle('on',+e.dataset.s===n));
+  [0,1,2,3].forEach(i=>{const el=$('s'+i);if(el)el.classList.toggle('hide',i!==n)});
+  if(n===3){loadPub();loadPkg();if(!TIMER)TIMER=setInterval(loadPub,1200)} else if(TIMER){clearInterval(TIMER);TIMER=null}}
+function setFilter(f,el){FILTER=f;document.querySelectorAll('.chip[data-f]').forEach(e=>e.classList.toggle('on',e===el));render()}
+
+async function boot(){
+  if(localStorage.getItem('wb-dark')==='1'){DARK=true;document.body.classList.add('dark')}
+  try{S=await api('/api/state')}catch(e){$('conn').textContent='后端未启动';return}
+  $('conn').textContent='已连接';$('dot').className='dot g';
+  $('sub').textContent=`本地运行 · ${S.base} · 当前：${S.project.name}`;
+  fillDataPaths();
+  const d=await api('/api/items');ITEMS=d.items;
+  syncViews();
+  if(S.import&&S.import.running)pollImport();
+  loadExport();
+  runEnvCheck();
+}
+function fillDataPaths(){
+  $('dataDir').value=S.dataDir||'';
+  $('dataNow').textContent=S.data||'—';
+  $('inboxNow').textContent=S.inbox||'—';
+  $('pkgNow').textContent=S.packages||'—';
+  $('hintInbox').textContent=S.inbox||'数据/收件箱';
+}
+async function applyDataDir(){
+  const v=$('dataDir').value.trim();
+  if(!v){toast('填一个路径再点应用');return}
+  const r=await post('/api/config',{dataDir:v});
+  if(r.ok){toast('已切换到 '+r.data+'，正在重载');setTimeout(()=>location.reload(),900)}
+  else toast(r.error||'切换失败');
+}
+function syncViews(){
+  const o=S.outroot,p=S.project||{};
+  $('sub').textContent=`本地运行 · ${S.base} · 当前：${p.name||'—'}`;
+  fillDataPaths();
+  $('outpaths').textContent=`项目：${p.name}\n素材：${p.dir}\n发布包：${o}\n清单：${o}\\发布清单.csv\n命令：${o}\\发布命令清单.txt\n脚本：${o}\\publish_all.py\n日志：${S.log}`;
+  const h='<b>顺序：自动重写文案 → 智能清洗 → 全选核对 → 生成发布包。</b>'+
+    '「一键自动重写文案」把原标题拆成品牌 / 型号 / 规格 / 成色，再重组为结构完全不同的标题和描述（本地规则，不联网、不调大模型）；医用 / 成人 / 功效类高危品直接拒写，不靠删词洗白。'+
+    '「智能清洗」给每张图排好动作，点「看清洗效果」可并排比较原图与处理后；<b>真正改图在「生成发布包」时，原图和 ZIP 永不动</b>。';
+  $('s2hint').innerHTML=h+(S.isLegacy
+    ?' <b>当前是 A 号（已有人工改写文案）</b>，默认跳过已改写的；要连它们一起换，用「覆盖重生成」。'
+    :' <b>当前是新导入的包</b>，默认一件都不纳入，重写并核对后再全选。');
+  renderKpi();render();renderZips();renderProjectCard();renderProjList();loadPubInfo();
+}
+function counts(){const c={all:ITEMS.length,'可搬':0,'改后搬':0,'需重拍':0,'放弃':0,inc:0,pics:0,prob:0};
+  ITEMS.forEach(i=>{if(c[i.conclusion]!==undefined)c[i.conclusion]++;if(i.include)c.inc++;i.pics.forEach(p=>{c.pics++;if(p.tags.length)c.prob++})});return c}
+function renderKpi(){const c=counts();
+  $('kpis').innerHTML=[['商品总数',c.all,'件'],['媒体文件',c.pics,'张/个'],['图片有问题',c.prob,'处'],['计划迁移',c.inc,'件'],['已导入项目',(S.projects||[]).length,'个']]
+    .map(([k,v,u])=>`<div class="kpi"><div class="k">${k}</div><div class="v">${v}<small>${u}</small></div></div>`).join('');
+  const segs=[['可搬','#3aa06a'],['改后搬','#e3b341'],['需重拍','#e08a4a'],['放弃','#cf5b52']];
+  $('riskbar').innerHTML=segs.map(([k,col])=>`<span style="width:${(c.all?c[k]/c.all*100:0).toFixed(1)}%;background:${col}"></span>`).join('');
+  $('risklegend').innerHTML=segs.map(([k,col])=>`<span><i style="background:${col}"></i>${k} ${c[k]} 件</span>`).join('');
+  $('c-all').textContent=c.all;$('c-ok').textContent=c['可搬'];$('c-y').textContent=c['改后搬'];$('c-o').textContent=c['需重拍'];$('c-r').textContent=c['放弃'];
+}
+function renderProjectCard(){
+  const p=S.project||{};
+  $('curBadge').textContent=p.legacy?'人工决策表 + 已改写文案':'自动扫描 · 待人工改写';
+  $('curInfo').innerHTML=[
+    ['项目名',`<b>${esc(p.name)}</b>`],['商品数',`${S.itemCount} 件`],
+    ['来源 ZIP',esc(p.zip||'—')],
+    ['素材目录',`<span class="mono">${esc(p.dir||'—')}</span>`],
+    ['图片扫描',p.scanned?'已完成':'进行中 / 未扫'],
+    ['本号状态文件',`<span class="mono">${esc(p.state||'—')}</span>`],
+    ['本号发布包',`<span class="mono">${esc(p.outroot||'—')}</span>`],
+  ].map(([k,v])=>`<div class="stat"><span>${k}</span><span>${v}</span></div>`).join('');
+}
+function renderProjList(){
+  const rows=(S.projects||[]).map(p=>{
+    const on=p.id===(S.project||{}).id;
+    const id=String(p.id).replace(/'/g,"\\'");
+    return `<tr><td><b>${esc(p.name)}</b> ${on?'<span class="tag t-ok">当前</span>':''}
+      <div class="muted mono" style="font-size:10.5px">${esc(p.id)}</div></td>
+      <td>${p.itemCount} 件</td><td>${p.legacy?'人工分档':'自动分档'} · ${p.scanned?'已扫图':'待扫图'}</td>
+      <td class="mono" style="font-size:10.5px">${esc(p.zip||'—')}</td>
+      <td class="mono" style="font-size:10.5px">${esc(String(p.importedAt||'').replace('T',' '))}</td>
+      <td><button class="btn" ${on?'disabled':''} onclick="switchProject('${id}')">切换</button></td></tr>`;
+  }).join('');
+  $('projList').innerHTML=`<table><tr><th>项目</th><th>商品</th><th>分档</th><th>来源 ZIP</th><th>导入时间</th><th></th></tr>${rows}</table>`;
+}
+function renderZips(){
+  const sel=$('zipSel'),usePath=$('usePath').checked;
+  sel.innerHTML=(S.zips||[]).length
+    ?S.zips.map(z=>`<option value="${esc(z)}">${esc(z)}</option>`).join('')
+    :'<option value="">（收件箱里还没有 ZIP）</option>';
+  sel.disabled=usePath;$('zipPath').disabled=!usePath;
+  $('btnImport').disabled=!!(S.import&&S.import.running)||(!usePath&&!(S.zips||[]).length);
+}
+async function doImport(){
+  const usePath=$('usePath').checked;
+  const path=usePath?($('zipPath').value||'').trim():'';
+  if(usePath&&!path){toast('先填 ZIP 的绝对路径');return}
+  const zip=usePath?'':$('zipSel').value;
+  if(!usePath&&!zip){toast('收件箱里没有 ZIP，请勾选绝对路径');return}
+  const name=($('accName').value||'').trim()||'新号';
+  $('btnImport').disabled=true;$('impProg').classList.remove('hide');
+  $('impTxt').textContent='正在解压并建项目…';
+  try{
+    const r=await post('/api/import',{zip,path,name});
+    toast(`已导入「${r.name}」${r.itemCount} 件，后台正在扫图`);
+    S=await api('/api/state');ITEMS=(await api('/api/items')).items;
+    syncViews();pollImport();
+  }catch(e){$('btnImport').disabled=false;$('impTxt').textContent='导入失败：'+e.message;toast('导入失败：'+e.message)}
+}
+function pollImport(){
+  if(IMP)clearInterval(IMP);
+  const tick=async()=>{
+    let d;try{d=await api('/api/import/status')}catch(e){return}
+    const s=d.import||{};
+    $('impBar').style.width=(s.total?Math.min(100,s.done/s.total*100):0)+'%';
+    $('impTxt').textContent=s.error?('扫描失败：'+s.error):`${s.stage}${s.total?'  '+s.done+'/'+s.total:''}`;
+    if(!s.running){
+      clearInterval(IMP);IMP=null;
+      await afterSwitch();$('btnImport').disabled=false;
+      toast(s.error?'扫描失败，商品仍可用，请人工核图':'导入完成，已切到新号');
+    }
+  };
+  tick();IMP=setInterval(tick,1500);
+}
+async function switchProject(id){
+  try{await post('/api/projects/switch',{id});await afterSwitch();toast('已切换项目')}
+  catch(e){toast('切换失败：'+e.message)}
+}
+async function afterSwitch(){
+  S=await api('/api/state');ITEMS=(await api('/api/items')).items;syncViews();
+}
+async function bulkInclude(mode,scope){
+  const ids=scope==='visible'?visibleItems().map(i=>i.id):null;
+  const body={mode};if(ids)body.ids=ids;
+  try{await post('/api/bulk-include',body)}catch(e){toast('操作失败：'+e.message);return}
+  await refreshItems();
+  const msg={all:'已全选纳入',none:'已全部取消纳入',invert:'已反选',risk:'已按风险档纳入'}[mode]||'完成';
+  toast(msg+(ids?`（当前列表 ${ids.length} 件）`:`（全部 ${ITEMS.length} 件）`));
+}
+function syncSelAll(){
+  const ids=visibleItems(),n=ids.length;
+  $('visCount').textContent=n;
+  const on=ids.filter(i=>i.include).length,el=$('selAll');
+  el.checked=n>0&&on===n;el.indeterminate=on>0&&on<n;
+}
+function toggleSelAll(){bulkInclude($('selAll').checked?'all':'none','visible')}
+function renderCleanStat(){
+  let keep=0,qr=0,drop=0,crop=0,rows=0;
+  ITEMS.forEach(i=>{let hit=false;i.pics.forEach(p=>{
+    if(p.kind==='video')return;
+    const a=i.actions[p.file]||'keep';
+    if(a==='erase_qr'){qr++;hit=true}else if(a==='delete'){drop++;hit=true}
+    else if(a&&a.startsWith('crop')){crop++;hit=true}else keep++;
+  });if(hit)rows++});
+  const done=qr+drop+crop;
+  $('cleanStat').innerHTML=done
+    ?`图片动作已排好：<b>${done} 张待处理</b>（抹二维码 ${qr} / 整张删除 ${drop} / 裁边 ${crop}），涉及 <b>${rows} 件</b>商品；其余 ${keep} 张原样保留。`
+     +' 动作在<b>生成发布包</b>时才真正落到图片上；点「看清洗效果」可并排核对。'
+    :`当前 <b>${keep} 张图片全部原样保留</b>，没有待处理项。若刚导入的新包还在扫图，等扫描跑完再点「一键智能清洗」。`;
+}
+function tagOf(c){return {'可搬':'t-ok','改后搬':'t-y','需重拍':'t-o','放弃':'t-r'}[c]||'t-n'}
+function firstPic(i){const p=i.pics.find(x=>x.kind==='image');return p?`/media/${i.id}/${encodeURIComponent(p.file)}`:''}
+function visibleItems(){const q=($('q').value||'').trim().toLowerCase();
+  return ITEMS.filter(i=>(FILTER==='all'||i.conclusion===FILTER)&&(!q||(i.title+i.id+i.newTitle).toLowerCase().includes(q)))}
+function render(){const list=visibleItems();
+  $('grid').innerHTML=list.map(i=>{
+    const bad=i.pics.filter(p=>p.tags.length).length;const fp=firstPic(i);
+    return `<div class="gcard ${i.include?'':'off'}" onclick="openDrawer('${i.id}')">
+      <div class="check ${i.include?'on':''}" onclick="event.stopPropagation();toggleInc('${i.id}')">${i.include?'✓':''}</div>
+      ${fp?`<img class="thumb" src="${fp}" loading="lazy" onerror="this.outerHTML='<div class=tholder>无预览</div>'">`:'<div class="tholder">无图</div>'}
+      <div class="gbody"><div class="gtitle">${esc(i.newTitle||i.title)}</div>
+        <div class="gmeta"><span class="price">¥${esc(i.editPrice)}</span><span class="tag ${tagOf(i.conclusion)}">${esc(i.conclusion)}</span>${RULEMAP[i.id]?`<span class="tag ${RULEMAP[i.id]===2?'t-r':'t-y'}">⚠规则</span>`:''}</div>
+        <div class="gmeta"><span>${esc(i.category||'—')} · ${i.pics.filter(p=>p.kind==='image').length} 图</span><span>${bad?'<span class="warn">⚠ '+bad+' 张待处理</span>':'<span class="muted">图正常</span>'}</span></div>
+      </div></div>`}).join('')||'<div class="muted" style="padding:30px">没有符合条件的商品</div>';
+  syncSelAll();renderCleanStat();
+}
+async function toggleInc(id){const i=ITEMS.find(x=>x.id===id);i.include=!i.include;await post('/api/save',{id,include:i.include});renderKpi();render()}
+const LABEL={keep:'原样保留',erase_qr:'抹除二维码',crop_bottom:'裁掉底部',crop_top:'裁掉顶部',crop_right:'裁掉右侧',delete:'整张删除'};
+async function smartClean(){
+  try{
+    const r=await post('/api/smart-clean');
+    await refreshItems();
+    toast(`已核对 ${r.total} 张图：抹码 ${r.erase_qr} / 删除 ${r.delete} / 裁边 ${r.crop_bottom} / 保留 ${r.keep}；${r.touched} 张待处理，涉及 ${r.items} 件`);
+    if(!r.touched)toast('扫描结果里没有待处理图片；动作在生成发布包时生效，点「看清洗效果」可核对');
+  }catch(e){toast('清洗失败：'+e.message)}
+}
+async function refreshItems(){ITEMS=(await api('/api/items')).items;renderKpi();render()}
+
+/* ---- 平台规则体检 ---- */
+let RULEMAP={};
+async function rulesCheck(){
+  toast('正在按平台规则逐件体检…');
+  try{
+    const r=await post('/api/rules-check',{});
+    if(r.error){toast('体检失败：'+r.error);return}
+    RULEMAP={};
+    (r.items||[]).forEach(x=>RULEMAP[x.id]=x.danger?2:1);
+    $('rulesCard').style.display='';
+    $('rulesSummary').textContent=`共 ${r.total} 件：高危 ${r.danger} · 提醒 ${r.warn} · 无问题 ${r.clean}（未纳入发布包的也一并查了，仅供参考）`;
+    const lvltxt={高危:'<span class="tag t-r">高危</span>',提醒:'<span class="tag t-y">提醒</span>'};
+    $('rulesList').innerHTML=(r.items||[]).map(x=>`<div style="padding:8px 0;border-bottom:1px solid var(--row)">
+      <div style="display:flex;gap:8px;align-items:center">
+        <b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.title.slice(0,44))}</b>
+        <span class="muted mono" style="font-size:10.5px">#${x.row}</span>
+        ${x.include?'':'<span class="muted" style="font-size:10.5px">未纳入</span>'}
+        <button class="btn" onclick="openDrawer('${x.id}')">去改</button>
+      </div>
+      <div style="font-size:11.5px;margin-top:4px;display:grid;gap:3px">
+        ${x.issues.map(y=>`<div>${lvltxt[y.level]||''} <b>${esc(y.rule)}</b>：${esc(y.msg)}</div>`).join('')}
+      </div></div>`).join('')
+      ||'<div class="muted" style="padding:16px">全部商品都过关，没有命中规则风险点 👍</div>';
+    render();
+    toast(`体检完成：高危 ${r.danger} 件 / 提醒 ${r.warn} 件 / 无问题 ${r.clean} 件`);
+  }catch(e){toast('体检失败：'+e.message)}
+}
+function openModal(title,body,foot){$('mTitle').textContent=title;$('mBody').innerHTML=body;$('mFoot').innerHTML=foot||'';$('modalMask').classList.add('on');$('modal').classList.add('on')}
+function closeModal(){$('modalMask').classList.remove('on');$('modal').classList.remove('on')}
+
+async function autoRewrite(force){
+  if(force&&!confirm('覆盖重生成会把已有的人工改写文案也换掉（原文仍保留，可一键还原）。确定吗？'))return;
+  toast('正在生成新文案…');
+  try{
+    const r=await post('/api/auto-rewrite',{overwrite:!!force,skipRisk:true});
+    if(r.error){toast('改写失败：'+r.error);return}
+    await refreshItems();
+    let t=`已自动重写 ${r.changed} 件`;
+    if(r.blocked)t+=`，拒写高危 ${r.blocked} 件`;
+    if(r.skipped)t+=`，跳过已改写 ${r.skipped} 件`;
+    if(r.skippedRisk)t+=`，跳过风险档 ${r.skippedRisk} 件`;
+    toast(t);
+    showCompare(r);
+  }catch(e){toast('改写失败：'+e.message)}
+}
+function showCompare(r){
+  let head='';
+  if(r&&r.changed!==undefined){
+    head=`<div class="hint"><b>本次自动重写完成。</b>改写 ${r.changed} 件，拒写高危 ${r.blocked} 件，跳过已改写 ${r.skipped} 件 / 风险档 ${r.skippedRisk} 件。标题与描述都是重新组织的句子，不是同义词替换。</div>`;
+    if(r.blockedIds&&r.blockedIds.length)
+      head+='<div class="hint" style="background:#fceceb;border-color:#e9c9c5"><b>以下商品被拒绝自动重写，请人工判定是否放弃：</b><br>'
+        +r.blockedIds.map(x=>'· '+esc(String(x.title).slice(0,42))).join('<br>')+'</div>';
+  }
+  const list=ITEMS.filter(i=>i.rewrite);
+  const body=list.length?list.map(i=>`<div class="cmprow"><div class="old">${esc(i.title)}</div><div class="new">${esc(i.newTitle)}</div></div>
+    <div class="muted" style="font-size:10.5px;padding-bottom:9px;border-bottom:1px solid var(--row)">${esc(i.rewrite.structure)} · 标题相似度 ${i.rewrite.titleSim} · 描述相似度 ${i.rewrite.descSim}<br>
+    原描述：${esc(String(i.desc).replace(/\s+/g,' ').slice(0,58))}…<br>新描述：${esc(String(i.newDesc).replace(/\s+/g,' ').slice(0,58))}…</div>`).join('')
+    :'<div class="muted" style="padding:22px">还没有自动改写的商品。点右上角「一键自动重写文案」即可生成；抽屉里也能单件重写 / 还原。</div>';
+  openModal('改写对照表 · '+list.length+' 件',head+body,
+    '<span class="muted">原标题描述永远保留，抽屉里可单件还原。相似度越低说明与原号文案差别越大。</span>'+
+    '<span class="spacer"></span><button class="btn" onclick="closeModal();autoRewrite(true)">覆盖重生成全部</button>');
+}
+function cleanRows(){
+  const out=[];
+  ITEMS.forEach(i=>i.pics.forEach(p=>{
+    if(p.kind==='video')return;
+    const a=i.actions[p.file]||'keep';
+    if(a!=='keep')out.push({id:i.id,title:i.title,file:p.file,act:a,tags:p.tags});
+  }));
+  return out;
+}
+function showCleanPreview(rows){
+  const list=rows||cleanRows();
+  if(!list.length){toast('没有待处理的图片');return}
+  const shown=list.slice(0,24);
+  const html=shown.map(x=>{
+    const orig=`/media/${x.id}/${encodeURIComponent(x.file)}`;
+    const pv=`/preview/${x.id}/${encodeURIComponent(x.file)}?action=${encodeURIComponent(x.act)}`;
+    const right=x.act==='delete'
+      ?'<div class="ph">这张含快递面单 / 隐私信息<br>会被整张删除，不进发布包</div>'
+      :`<img src="${pv}" onload="if(this.naturalWidth<=2)this.outerHTML='<div class=ph>处理后这张会被弃用（二维码涂不净 / 检测器误判）</div>'" onerror="this.outerHTML='<div class=ph>处理后这张会被弃用（二维码涂不净 / 检测器误判）</div>'">`;
+    return `<div class="cmpitem"><div class="ct">${esc(String(x.title).slice(0,34))} · <span class="mono">${esc(x.file)}</span> · <span class="prtag">${esc(LABEL[x.act]||x.act)}</span></div>
+      <div class="cmp"><div><div class="lab">原图（不会被修改）</div><img src="${orig}" onerror="this.style.display='none'"></div>
+      <div><div class="lab">生成发布包后</div>${right}</div></div></div>`;
+  }).join('');
+  openModal('清洗效果对比 · '+list.length+' 张',
+    html+(list.length>shown.length?`<div class="muted">还有 ${list.length-shown.length} 张未显示，生成发布包时会一并处理。</div>`:''),
+    '<span class="muted">右侧是按当前动作实时生成的预览，只写缓存目录；原图和原始 ZIP 不动。</span>'+
+    '<span class="spacer"></span><button class="btn" onclick="closeModal();smartClean()">重新排布动作</button>');
+}
+function previewOne(file){
+  if(!CUR)return;
+  showCleanPreview([{id:CUR.id,title:CUR.title,file,act:CUR.actions[file]||'keep',tags:[]}]);
+}
+async function rewriteOne(){
+  if(!CUR)return;const id=CUR.id;
+  toast('正在重写这一件…');
+  try{
+    const r=await post('/api/auto-rewrite',{ids:[id],overwrite:true,skipRisk:false});
+    if(r.error){toast(r.error);return}
+    await refreshItems();
+    CUR=ITEMS.find(x=>x.id===id);
+    if(r.blocked){toast('这件含高危词，已拒绝自动重写：'+((r.blockedIds||[{}])[0].why||'请人工判定'));return}
+    openDrawer(id);toast('这一件已重写');
+  }catch(e){toast('重写失败：'+e.message)}
+}
+async function restoreCur(){
+  if(!CUR)return;const id=CUR.id;
+  $('nt').value=CUR.title;$('nd').value=CUR.desc;
+  await post('/api/save',{id,title:CUR.title,desc:CUR.desc,restore:true});
+  await refreshItems();CUR=ITEMS.find(x=>x.id===id);openDrawer(id);
+  toast('已还原为原文文案');
+}
+
+function openDrawer(id){CUR=ITEMS.find(x=>x.id===id);if(!CUR)return;
+  $('dtitle').textContent=CUR.newTitle||CUR.title;
+  $('dmeta').textContent=`ID ${CUR.id} · ${CUR.category} · 原价 ¥${CUR.priceText} · ${CUR.conclusion}`;
+  $('dinclude').checked=CUR.include;
+  const opts=[['keep','原样保留'],['erase_qr','抹除二维码'],['crop_bottom','裁掉底部 12%'],['crop_top','裁掉顶部 12%'],['crop_right','裁掉右侧 12%'],['delete','整张删除']];
+  const rw=CUR.rewrite?`已自动改写 · ${esc(CUR.rewrite.structure)} · 标题相似度 ${CUR.rewrite.titleSim} · 描述相似度 ${CUR.rewrite.descSim}`:'尚未自动改写';
+  const pics=CUR.pics.map(p=>{
+    const a=CUR.actions[p.file]||'keep';
+    const url=`/media/${CUR.id}/${encodeURIComponent(p.file)}`;
+    return `<div class="pic ${a==='delete'?'del':''}" id="pic_${esc(p.file).replace(/[^\w.-]/g,'_')}">
+      <div class="ptags">${p.tags.map(t=>`<span class="ptag ${t==='二维码'?'blue':''}">${esc(t)}</span>`).join('')}${p.kind==='video'?'<span class="ptag">视频·不发布</span>':''}</div>
+      ${p.kind==='image'?`<img src="${url}" loading="lazy" onerror="this.style.display='none'">`:'<div class="tholder" style="height:94px">视频</div>'}
+      <div class="pfoot"><select onchange="setAct('${esc(p.file)}',this.value)">${opts.map(([v,n])=>`<option value="${v}" ${a===v?'selected':''}>${n}</option>`).join('')}</select>
+      <button class="btn" style="font-size:10px;padding:2px 6px;margin-top:4px;width:100%" onclick="previewOne('${esc(p.file)}')">看效果</button>
+      <div class="pn">${esc(p.file)}</div></div></div>`}).join('');
+  $('dbody').innerHTML=`
+    <div class="sec"><label>图片处理动作 <span class="muted">（改动在「生成发布包」时才真正生效，原图不动）</span></label><div class="pics">${pics}</div>
+      <div style="margin-top:9px"><button class="btn" onclick="showCleanPreview(cleanRows().filter(r=>r.id===CUR.id))">看本件清洗效果（原图 / 处理后并排）</button></div></div>
+    ${CUR.picNote&&CUR.picNote!=='None'?`<div class="hint" style="margin-bottom:16px"><b>图片提示：</b>${esc(CUR.picNote)}</div>`:''}
+    ${CUR.copyNote&&CUR.copyNote!=='None'?`<div class="hint" style="margin-bottom:16px"><b>文案判定：</b>${esc(CUR.copyRisk)} ${esc(CUR.copyNote)}</div>`:''}
+    <div class="sec"><label>原标题（只读，永远保留）</label><div class="orig">${esc(CUR.title)}</div></div>
+    <div class="sec"><label>新标题 <span class="muted">— 必须与原号不同，避免重复铺货</span></label>
+      <div style="display:flex;gap:7px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+        <button class="btn" onclick="rewriteOne()">自动重写这一件</button>
+        <button class="btn" onclick="restoreCur()">还原原文文案</button>
+        <span class="muted" id="rwInfo" style="font-size:10.5px">${rw}</span></div>
+      <input type="text" id="nt" value="${esc(CUR.newTitle)}"></div>
+    <div class="sec"><label>原描述（只读）</label><div class="orig">${esc(CUR.desc)}</div></div>
+    <div class="sec"><label>新描述 <span class="muted">— 换一套结构，别只改几个字</span></label><textarea id="nd">${esc(CUR.newDesc)}</textarea></div>
+    <div class="row2"><div class="sec"><label>价格（必须是数字）</label><input type="number" id="np" step="0.01" value="${esc(CUR.editPrice)}">
+      ${CUR.priceNote?`<div class="warn">⚠ ${esc(CUR.priceNote)}</div>`:''}</div>
+      <div class="sec"><label>发货方式</label><select id="ndl"><option ${CUR.delivery==='包邮'?'selected':''}>包邮</option><option ${CUR.delivery==='一口价'?'selected':''}>一口价</option><option ${CUR.delivery==='按距离计费'?'selected':''}>按距离计费</option><option ${CUR.delivery==='无需邮寄'?'selected':''}>无需邮寄</option></select></div></div>
+    <div class="sec"><label>类目 / 属性</label><div class="muted">${esc(CUR.category)} · ${esc(Object.entries(CUR.attrs).map(([k,v])=>k+':'+v).join(' / ')||'无')}</div></div>`;
+  ['nt','nd','np','ndl'].forEach(k=>$(k).addEventListener('change',saveCur));
+  $('mask').classList.add('on');$('drawer').classList.add('on');
+}
+function setAct(file,v){CUR.actions[file]=v;saveCur();
+  const el=document.getElementById('pic_'+file.replace(/[^\w.-]/g,'_'));if(el)el.classList.toggle('del',v==='delete')}
+function collect(){if(!CUR)return{};return{id:CUR.id,include:$('dinclude').checked,title:$('nt').value,desc:$('nd').value,
+  price:parseFloat($('np').value)||0,delivery:$('ndl').value,actions:CUR.actions}}
+async function saveCur(){if(!CUR)return;const b=collect();Object.assign(CUR,{include:b.include,newTitle:b.title,newDesc:b.desc,editPrice:b.price,delivery:b.delivery});
+  await post('/api/save',b);$('dsaved').textContent='已保存 '+new Date().toLocaleTimeString('zh-CN',{hour12:false});renderKpi()}
+$('dinclude').addEventListener('change',()=>{saveCur();render()});
+function closeDrawer(){$('mask').classList.remove('on');$('drawer').classList.remove('on');CUR=null}
+async function saveAndClose(){await saveCur();await refreshItems();closeDrawer();toast('已保存')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();closeModal()}});
+
+async function buildPkg(){toast('正在生成发布包，请稍候…');try{const r=await post('/api/build');
+  toast(`发布包完成：${r.count} 件${r.warnings.length?'，'+r.warnings.length+' 条提醒':''}`);
+  S=await api('/api/state');loadPubInfo();loadPub();
+  if(r.warnings.length)console.log(r.warnings);
+  go(3)}catch(e){toast('生成失败：'+e.message)}}
+function loadPubInfo(){const p=S.package;
+  $('pkginfo').innerHTML=p?`<div class="stat"><span>已生成商品</span><b>${p.count} 件</b></div><div class="stat"><span>生成时间</span><b class="mono">${esc(p.createdAt)}</b></div><div class="stat"><span>结构</span><b>一商品一文件夹 + 商品信息.json</b></div>`:
+    '<div class="muted">还没有发布包。回「清洗与改写」页点「生成发布包」。</div>';
+  const c=S.cli||{};$('cliinfo').innerHTML=`<div class="stat"><span>本机状态</span><b style="color:${c.installed?'#2f8f5b':'#b5453c'}">${c.installed?'已安装':'未安装'}</b></div>
+    ${c.installed?`<div class="stat"><span>路径</span><b class="mono">${esc(c.exe)}</b></div>${c.node===false?`<div class="muted" style="color:#b5453c;padding-top:6px">⚠ 本机没找到 Node.js——发布会因「签名语法错误」失败。装个 Node.js（或把 node.exe 放进工具包 runtime\\ 文件夹）再发布。</div>`:''}`:`<div class="muted" style="padding-top:8px">点「一键安装 goofish-cli」即可在本机装好，无需手敲命令。换到别的电脑也一样——拷过去双击启动，再点这一键安装就行。</div>`}`
+  renderCli()}
+async function loadCli(){try{const d=await api('/api/cli/status');S.cli=d.cli;S.cliOp=d}catch(e){}renderCli()}
+function renderCli(){
+  const c=S.cli||{},op=S.cliOp||{install:{},auth:{}};
+  const inst=op.install||{},auth=op.auth||{};
+  $('btnInstall').style.display=c.installed?'none':'';
+  $('btnQr').style.display=(c.installed&&!auth.running)?'':'none';
+  $('btnAuto').style.display=(c.installed&&!auth.running)?'':'none';
+  $('btnAuthCancel').style.display=auth.running?'':'none';
+  if(inst.running||(inst.log&&inst.log.length)){
+    $('cliLog').style.display='';
+    $('cliLog').innerHTML=`<div class="muted">安装进度（约 1 分钟，请稍候）：</div><div class="code" style="max-height:170px;overflow:auto;white-space:pre-wrap;margin-top:5px">${esc(inst.log.slice(-28).join('\n'))}</div>`;
+  }else $('cliLog').style.display='none';
+  if(auth.running||(auth.log&&auth.log.length)||auth.result){
+    $('cliQr').style.display='';
+    const head = auth.mode==='qr'
+      ? '<div class="muted">已弹出 Edge 窗口，请用手机「闲鱼 App」扫码；扫完在手机上点「确认登录」。关闭窗口或超时会结束。</div>'
+      : '<div class="muted">正在读取本机浏览器里已登录的闲鱼会话…</div>';
+    const body=(auth.log||[]).join('\n');
+    const res = auth.result ? `<div class="code" style="margin-top:6px;white-space:pre-wrap;color:${auth.result.ok?'#2f8f5b':'#b5453c'}">${esc((auth.result.ok?'✓ ':'✗ ')+auth.result.msg)}</div>` : '';
+    $('cliQr').innerHTML=head+`<pre class="code" style="white-space:pre-wrap;overflow:auto;font-size:11px;line-height:1.3;margin-top:5px">${esc(body)}</pre>`+res;
+  }else $('cliQr').style.display='none';
+}
+function startInstall(){post('/api/cli/install',{}).then(r=>{if(r&&r.ok===false&&r.reason==='installed')toast('已经装好了');loadCli();setCliTimer()}).catch(e=>toast('安装启动失败：'+e.message))}
+function startAuth(mode){post('/api/cli/auth',{mode}).then(()=>{loadCli();setCliTimer()}).catch(e=>toast('登录启动失败：'+e.message))}
+function cancelAuth(){post('/api/cli/auth/cancel',{}).then(()=>loadCli()).catch(()=>{})}
+
+/* ---- 第一步：一键自导出 ---- */
+let EXPST=null,expTimer=null;
+async function loadExport(){try{const d=await api('/api/export/status');EXPST=d.exp;renderExport()}catch(e){}}
+function renderExport(){
+  const st=EXPST||{running:false,log:[],result:null};
+  $('btnExport').disabled=!!st.running;
+  $('btnExpStop').style.display=st.running?'':'none';
+  if(st.running||(st.log&&st.log.length)){
+    $('expLog').style.display='';
+    const res=st.result?`<div class="code" style="margin-top:6px;white-space:pre-wrap;color:${st.result.ok?'#2f8f5b':'#b5453c'}">${esc((st.result.ok?'✓ ':'✗ ')+st.result.msg)}</div>`:'';
+    $('expLog').innerHTML=`<div class="muted" style="font-size:11px">导出日志：</div><pre class="code" style="white-space:pre-wrap;overflow:auto;max-height:230px;margin-top:5px">${esc((st.log||[]).join('\n'))}</pre>`+res;
+  }else $('expLog').style.display='none';
+}
+async function startExport(){
+  const name=($('expName').value||'').trim();
+  const limit=parseInt($('expLimit').value,10)||0;
+  try{
+    const r=await post('/api/export/start',{name,limit});
+    if(r&&r.ok===false){toast(r.reason==='running'?'导出已经在跑了':r.reason==='busy'?'有导入/发布任务在跑，等它结束':'启动失败');return}
+    toast('已弹出 Edge 窗口，请在里面登录要导的号（首次扫码）');
+    renderExport();setExpTimer();
+  }catch(e){toast('启动失败：'+e.message)}
+}
+async function stopExport(){await post('/api/export/stop',{});toast('已发出停止指令')}
+function setExpTimer(){
+  if(expTimer)return;
+  expTimer=setInterval(async()=>{
+    await loadExport();
+    const st=EXPST;
+    if(st&&!st.running){
+      clearInterval(expTimer);expTimer=null;
+      if(st.result&&st.result.ok){
+        try{S=await api('/api/state');renderZips()}catch(e){}
+        toast('导出完成，收件箱里已选到新 ZIP，点「导入并切换」即可');
+      }
+    }
+  },1800);
+}
+let cliTimer=null;
+function setCliTimer(){if(cliTimer)return;cliTimer=setInterval(async()=>{await loadCli();const op=S.cliOp||{};if(!((op.install||{}).running||(op.auth||{}).running)){clearInterval(cliTimer);cliTimer=null;}},1500)}
+async function startPub(mode){if(mode==='live'&&!$('confirm').checked){toast('请先勾选确认');return}
+  const cnt=parseInt($('pubCount').value,10)||0;
+  const ids=[...document.querySelectorAll('#pkglist input[type=checkbox]:checked')].map(c=>c.dataset.id);
+  try{await post('/api/publish/start',{mode,confirm:$('confirm').checked,count:cnt,ids});toast(mode==='live'?`真实发布已启动（${ids.length?ids.length+' 件勾选':'全部未发布'}）`:'演练已启动');loadPub()}
+  catch(e){toast('启动失败：'+e.message)}}
+async function stopPub(){await post('/api/publish/stop');toast('已发出停止指令')}
+async function loadPkg(){try{const d=await api('/api/pkg/items');S.pkg=d.items||[];renderPkg()}catch(e){}}
+function renderPkg(){
+  const items=S.pkg||[];const done=items.filter(x=>x.published).length;
+  $('pkgsummary').textContent=items.length?`共 ${items.length} 件 · 已发布 ${done} · 未发布 ${items.length-done}`:'';
+  $('pkglist').innerHTML=items.map(x=>`<label style="display:flex;gap:8px;align-items:center;padding:6px 3px;border-bottom:1px solid var(--border)">
+    <input type="checkbox" data-id="${x.id}" ${x.published?'disabled':''} onchange="updPkgSel()">
+    <img src="${x.images[0]||''}" loading="lazy" style="width:38px;height:38px;object-fit:cover;border-radius:6px;flex:none" onerror="this.style.visibility='hidden'">
+    <span style="flex:1;min-width:0;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.title)}${x.published?' <b style="color:#2f8f5b">〔已发布〕</b>':' <b style="color:#b58b3c">〔未发布〕</b>'}</span>
+    <span class="mono" style="font-size:12px;flex:none">¥${x.price}</span>
+    <button class="btn" style="flex:none" onclick="event.preventDefault();openPkgModal('${x.id}')">预览</button>
+    <button class="btn" style="flex:none" onclick="event.preventDefault();openPkgModal('${x.id}',true)">修改</button>
+  </label>`).join('')||'<div class="muted">还没有发布包。回「清洗与改写」页点「生成发布包」。</div>';
+  updPkgSel()}
+function updPkgSel(){const cbs=[...document.querySelectorAll('#pkglist input[type=checkbox]')];
+  const n=cbs.filter(c=>c.checked).length;
+  $('pkgsel').textContent=n?`已勾选 ${n} 件`:`未勾选 = 发全部未发布（${cbs.length-(S.pkg||[]).filter(x=>x.published).length} 件）`}
+function selPkg(mode){const items=S.pkg||[];
+  document.querySelectorAll('#pkglist input[type=checkbox]').forEach(c=>{
+    const it=items.find(x=>x.id===c.dataset.id);if(!it||it.published)return;
+    c.checked=(mode!=='none')});
+  updPkgSel()}
+function openPkgModal(id,edit){const it=(S.pkg||[]).find(x=>x.id===id);if(!it)return;
+  if(edit){
+    const dv=it.delivery||'无需邮寄';
+    $('pkgmodalBody').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+      <h3 style="margin:0;font-size:14px">修改商品 <span class="muted" style="font-size:11px;font-weight:400">${esc(it.title).slice(0,24)}…</span></h3>
+      <button class="btn" onclick="closePkgModal()">关闭</button></div>
+    <div style="margin-top:10px"><b style="font-size:12px">标题</b><br>
+      <input id="edTitle" value="${esc(it.title)}" style="width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--bg);color:var(--t1);font-size:12px"></div>
+    <div style="display:flex;gap:10px;margin-top:9px">
+      <div><b style="font-size:12px">价格 ¥</b><br>
+        <input id="edPrice" type="number" step="0.01" min="0" value="${it.price}" style="width:90px;margin-top:4px;padding:6px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--bg);color:var(--t1);font-size:12px"></div>
+      <div><b style="font-size:12px">发货方式</b><br>
+        <select id="edDelivery" style="margin-top:4px;padding:6px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--bg);color:var(--t1);font-size:12px">
+          ${['包邮','按距离计费','一口价','无需邮寄'].map(v=>`<option ${v===dv?'selected':''}>${v}</option>`).join('')}
+        </select></div></div>
+    <div style="margin-top:9px"><b style="font-size:12px">描述</b><br>
+      <textarea id="edDesc" rows="7" style="width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--border2);border-radius:6px;background:var(--bg);color:var(--t1);font-size:12px;font-family:inherit;resize:vertical">${esc(it.desc||'')}</textarea></div>
+    <div style="display:flex;gap:8px;margin-top:11px;align-items:center">
+      <button class="btn primary" onclick="savePkg('${it.id}')">保存到发布包</button>
+      ${it.published?'<span class="muted" style="font-size:11px">这件已发布；改动只影响发布包，之后补发/重发才用到</span>':'<span class="muted" style="font-size:11px">改动只影响发布包，发布时按这里的内容上架</span>'}
+    </div>`;
+    $('pkgmodal').style.display='';return}
+  $('pkgmodalBody').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+    <h3 style="margin:0;font-size:14px">${esc(it.title)}${it.published?' <b style="color:#2f8f5b">〔已发布〕</b>':' <b style="color:#b58b3c">〔未发布〕</b>'}</h3>
+    <button class="btn" onclick="closePkgModal()">关闭</button></div>
+  <div class="stat" style="margin-top:9px"><span>价格</span><b>¥${it.price}</b></div>
+  <div class="stat"><span>发货方式</span><b>${esc(it.delivery||'无需邮寄')}</b></div>
+  <div class="stat"><span>图片</span><b>${it.images.length} 张</b></div>
+  <div class="muted" style="margin-top:9px;font-size:11.5px">描述</div>
+  <div class="code" style="white-space:pre-wrap;max-height:150px;overflow:auto;margin-top:4px">${esc(it.desc||'（无）')}</div>
+  <div class="muted" style="margin-top:9px;font-size:11.5px">图片预览</div>
+  <div style="margin-top:5px">${it.images.map(u=>`<img src="${u}" loading="lazy" style="width:100%;max-width:400px;display:block;margin:0 auto 8px;border-radius:8px;border:1px solid var(--border)">`).join('')}</div>`;
+  $('pkgmodal').style.display=''}
+async function savePkg(id){const title=$('edTitle').value.trim();
+  if(!title){toast('标题不能为空');return}
+  try{await post('/api/pkg/edit',{id,title,price:parseFloat($('edPrice').value)||0,
+    delivery:$('edDelivery').value,desc:$('edDesc').value});
+    toast('已保存到发布包');closePkgModal();loadPkg()}
+  catch(e){toast('保存失败：'+e.message)}}
+function closePkgModal(){$('pkgmodal').style.display='none'}
+async function loadPub(){let d;try{d=await api('/api/publish/status')}catch(e){return}
+  const wasRunning=S.pubRunning;S.pubRunning=d.pub.running;
+  if(wasRunning&&!d.pub.running)loadPkg();   // 一轮发布结束，刷新已发布标记
+  const p=d.pub;$('bstart').disabled=p.running;$('blive').disabled=p.running||!$('confirm').checked;$('bstop').disabled=!p.running;
+  const st=$('pubstate');st.innerHTML=`<i class="dot ${p.running?'b':(p.fail?'r':'')}"></i>${p.running?(p.mode==='live'?'真实发布中':'演练中'):(p.done?'已结束':'空闲')}`;
+  $('progbar').style.width=(p.total?p.done/p.total*100:0)+'%';
+  $('progtxt').textContent=p.total?`${p.done}/${p.total} 件 · 成功 ${p.ok} · 失败 ${p.fail}${p.current?' · 当前：'+p.current:''}`:'尚未开始';
+  const box=$('logbox');const near=box.scrollTop+box.clientHeight>=box.scrollHeight-30;
+  box.innerHTML=(d.logs||[]).map(l=>`<span class="${l.includes('失败')||l.includes('异常')||l.includes('拒绝')?'er':(l.includes('成功')||l.includes('完成')?'ok':'dim')}">${esc(l)}</span>`).join('\n');
+  if(near)box.scrollTop=box.scrollHeight;
+  if(d.package){S.package={count:d.package.count,createdAt:d.package.createdAt};loadPubInfo();loadPkg()}
+  if(d.cliOp){S.cliOp=d.cliOp;S.cli=d.cli;renderCli()}
+}
+$('confirm').addEventListener('change',()=>{$('blive').disabled=!($('confirm').checked)||($('pubstate').textContent.includes('中'))});
+/* ---- 第 1 步：环境自检 + 一键装依赖 ---- */
+let envTimer=null;
+function renderEnv(env){
+  if(!env)return;
+  const tag={ok:['t-ok','✓'],warn:['t-y','可选'],bad:['t-r','缺']};
+  $('envList').innerHTML=env.items.map(x=>{
+    const[t,lb]=tag[x.flag]||['t-n','?'];
+    return `<div style="display:flex;gap:9px;padding:5px 0;border-bottom:1px solid var(--row);font-size:12px;align-items:baseline">
+      <span class="tag ${t}" style="flex:none;width:44px;text-align:center">${lb}</span>
+      <b style="flex:none;white-space:pre">${esc(x.name)}</b>
+      <span class="muted" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.detail)}</span></div>`;
+  }).join('');
+  $('envState').textContent=env.ok?'✓ 环境齐了，可以进下一步':'✗ 还缺：'+env.problems.join('、');
+  $('envState').style.color=env.ok?'#2f8f5b':'#b5453c';
+}
+async function runEnvCheck(){
+  $('envState').textContent='正在自检（探测 Edge 要几秒）…';$('envState').style.color='';
+  try{const r=await post('/api/env/check',{});renderEnv(r.env);
+    toast(r.env.ok?'自检完成：环境齐了':'自检完成：还缺 '+r.env.problems.length+' 项，点「一键安装依赖」');}
+  catch(e){$('envState').textContent='自检出错：'+e.message}
+}
+async function envInstall(){
+  if(!confirm('要联网安装 Python 依赖（playwright / opencv 等，约几十 MB），每台电脑装一次。继续吗？'))return;
+  try{await post('/api/env/install',{})}catch(e){}
+  $('envLog').style.display='';$('envState').textContent='正在安装依赖…';$('envState').style.color='';
+  if(envTimer)return;
+  envTimer=setInterval(async()=>{
+    let d;try{d=await api('/api/env/status')}catch(e){return}
+    $('envLog').innerHTML='<div class="muted" style="font-size:11px">安装日志：</div><pre class="code" style="white-space:pre-wrap;max-height:200px;overflow:auto;margin-top:5px">'+esc((d.env.log||[]).join('\n'))+'</pre>';
+    if(!d.env.installing){
+      clearInterval(envTimer);envTimer=null;
+      if(d.env.checked)renderEnv(d.env.checked);
+      toast(d.env.checked&&d.env.checked.ok?'依赖装好了，自检全绿 ✓':'安装结束，请看上面自检结果，还有红的就再装一次');
+    }
+  },1500);
+}
+function showHelp(){alert('闲鱼搬运工作台 · 使用说明\n\n⓪ 环境准备（第 1 页）：新电脑 / 第一次用先看这页。缺什么一目了然，点「一键安装依赖」补齐（联网、每台电脑一次），再点「重新自检」全绿即可，不用再跑任何命令行脚本。\n① 导出包 / 换号（第 2 页）：一个号 = 一个项目。最快的方式：点「一键导出新号商品」→ 弹出独立 Edge 窗口 → 登录要导的闲鱼号（首次扫码，之后免扫）→ 自动打包 ZIP 进收件箱，选它「导入并切换」。也可以用忙鱼导出 ZIP 放进收件箱（或勾选绝对路径）。导入会自动解压、扫二维码/水印/面单、文案分档；项目列表里随时切回其它号。\n   新导入的包默认一件都不纳入，文案必须重写（可一键自动），避免同图同文被判重复铺货。\n② 清洗与改写（第 3 页）：\n   · 一键自动重写文案：把原标题拆成品牌/型号/规格/成色，重新组织成结构、句式、段落顺序都不同的标题和描述。本地规则，不联网、不调大模型；医用/成人/功效类高危品直接拒写，不靠删词洗白。改写对照表能看前后差异，抽屉里可单件重写或一键还原原文。\n   · 一键智能清洗：给每张图排好动作（抹二维码 / 条形码 / 删面单 / 裁水印；品牌商标不处理）。「看清洗效果」并排对比原图与处理后；真正改图发生在生成发布包时，原图和 ZIP 不动。\n   · 规则体检：按闲鱼平台规则逐件扫风险点（站外引流/售假词/绝对化用语/重复铺货等），高危红色、提醒黄色，页面上还有规则速查。\n   · 全选：勾「全选当前列表」只作用于当前筛选/搜索结果；「全选（全部商品）」作用于整包；另有反选、全部取消、按风险纳入。\n   · 逐件点卡片核对，最后点「生成发布包」。\n③ 发布（第 4 页）：默认演练（不发真实请求）。真发要勾选确认，且本机已装 goofish-cli。「商品清单」里可勾选要发的件（默认发全部未发布），点「预览」能逐件看图和描述；已发布/未发布有标记，发布完成后标记自动刷新。遇到单件失败（限速/类目等）会自动等待重试或换类目，还不行就跳过这件继续发，连败 5 件才停。\n\n每个号有独立的状态文件和发布包目录，互不串号；原图和原始 ZIP 永不被修改。\n风控护栏：1 件/分钟、失败即停、发布后回读核对。\n自动分档只是正则初筛，最终判据仍是人工核对。\n\n关闭：关掉启动时的黑色命令行窗口即可。\n\n换电脑：整个工具包文件夹复制过去即可，路径不依赖用户名或工作区；新电脑到第 1 页「环境准备」点一次「一键安装依赖」，登录态留在浏览器资料目录里，不要连同账号目录一起外传。')}
+boot();
+</script></body></html>

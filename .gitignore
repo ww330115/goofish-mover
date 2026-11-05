@@ -1,0 +1,16 @@
+# 用户数据一律不进仓库（含登录态、导出 ZIP、发布记录）
+数据/
+runtime/
+*.log
+
+# 个人业务资料
+app/参考/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# 系统杂项
+Thumbs.db
+Desktop.ini
