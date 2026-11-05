@@ -1,80 +1,109 @@
-# 闲鱼搬家用工具包（Goofish Listing Migration Toolkit）
+**English** | [简体中文](README.zh-CN.md)
 
-**纯本地运行 · 数据不出电脑 · 双击即用的闲鱼商品搬家工作台。**
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![Platform](https://img.shields.io/badge/platform-Windows-0078D4)
+![Data](https://img.shields.io/badge/data-local--only-2EA043)
+![License](https://img.shields.io/badge/license-personal--use-green)
 
-把一个闲鱼账号的在售商品整体搬到另一个账号：自动导出 → 离线清洗图片 → 离线改写文案 →
-按平台规则体检 → 限速发布。全程只监听 `127.0.0.1`，不上传任何数据到任何服务器。
+# Goofish Mover
 
-[English](README_EN.md)
+A fully local Windows workbench that moves all on-sale listings from one Goofish
+(Xianyu) account to another: **export → clean & rewrite → rule check → publish**.
 
----
+- **Local-only.** One Python file server on `127.0.0.1`; no cloud, no telemetry, your
+  data never leaves the PC.
+- **Offline rewrite engine.** Restructures titles/descriptions locally (no LLM calls),
+  scrubs QR codes / barcodes / shipping labels / watermarks from photos.
+- **Rule check built in.** Scans every listing for 9 classes of platform risk before
+  you publish — off-site contact, counterfeit words, superlatives, duplicates…
+- **Safe publishing.** Dry-run by default; real publishing via goofish-cli at
+  1 item/minute with read-back verification and duplicate protection.
+- **Docs for humans and agents:** this README for you, [`AGENT_GUIDE.md`](AGENT_GUIDE.md)
+  for your AI assistant.
 
-## ✨ 功能
+![Workbench](docs/screenshots/03-clean.png)
 
-| 步骤 | 能力 |
+> Every listing, image and price in these screenshots is **generated demo data**
+> (fake products drawn with PIL). Nothing here is the author's real account.
+
+## What it does
+
+| Step | Page | What happens |
+|---|---|---|
+| ① | Environment | Self-checks Python / dependencies / Edge / goofish-cli; one-click install for anything missing |
+| ② | Export | QR-login in a dedicated Edge window, fetches your own on-sale listings, packs a ZIP; session persists |
+| ③ | Clean & Rewrite | Offline rewrite, image scrubbing, platform-rule check, per-item review → build publish package |
+| ④ | Publish | Dry-run first; real publish with rate limit, auto-skip on failure, published markers |
+
+## Screenshots
+
+| Environment | Export |
 |---|---|
-| ① 环境准备 | 自检 Python / 依赖 / Edge / goofish-cli，缺什么一键补齐，新机免敲命令 |
-| ② 导出包 | 弹独立 Edge 窗口扫码登录，自动抓取自己账号的在售商品、下图、打包 ZIP；登录态留存，之后免扫码 |
-| ③ 清洗与改写 | 离线文案改写引擎（结构/句式/段落重组，不联网不调大模型）；二维码/条形码抹除、快递面单删除、水印裁边；**闲鱼平台规则体检**（站外引流、售假词、绝对化用语、重复铺货等 9 类风险逐件扫描） |
-| ④ 发布 | 默认演练；真实发布走 goofish-cli，1 件/分钟限速、失败自动跳过、发布后回读核对、已发布标记防重复 |
+| ![Environment](docs/screenshots/01-environment.png) | ![Export](docs/screenshots/02-export.png) |
 
-其他特性：
+| Clean & Rewrite | Publish |
+|---|---|
+| ![Clean](docs/screenshots/03-clean.png) | ![Publish](docs/screenshots/04-publish.png) |
 
-- **一个号 = 一个项目**，多号状态/发布包完全隔离，随时切换
-- 商品清单可勾选发布、预览、单件修改（标题/价格/发货方式/描述）
-- 限速自动等待重试、类目失败自动兜底重发
-- 数据目录可配置（跟包走 / D 盘 / U 盘）
-- 原图和原始 ZIP 永不修改，所有处理结果写入新目录
+## Quick start (Windows)
 
-## 🚀 快速开始
+### Option 1: double-click
 
-1. 双击 **`启动工作台.cmd`**
-   - 已有 Python 3.9+ → 直接启动
-   - 没有 Python → 会询问是否**自动下载便携版 Python（约 12 MB）**，选 Y 即可
-2. 工作台第 1 页「环境准备」点一次 **一键安装依赖**（联网，每台电脑一次），全绿进入下一步
-3. 按网页四步走：导出 → 清洗 → 发布
+1. Double-click **`启动工作台.cmd`** (the launcher). It finds a Python 3.9+ for you —
+   and if none exists, offers to auto-download a portable Python (~12 MB).
+2. On page ① click **Install dependencies** once (internet needed, once per machine).
+3. Follow the four pages: export your source account → clean & rewrite → publish.
 
-### 🤖 让 AI 替你部署
+### Option 2: run from source
 
-不想动手？把 **`AGENT_GUIDE.md`** 丢给任何 AI 助手（Claude / ChatGPT / Copilot…），
-它读完就能在这台电脑上完成安装、启动、验证和日常操作——文档里写清了部署步骤、
-API 速查、目录结构和 Agent 行为红线。
-
-## 📁 目录结构
-
-```
-启动工作台.cmd          唯一入口
-使用说明.txt            面向人的完整说明
-AGENT_GUIDE.md          面向 AI 助手的部署与操作指南
-config.json             数据目录 / 端口
-app/                    后端、导出器、改写引擎、页面、依赖清单
-数据/                   收件箱 / 项目 / 发布包 / 浏览器资料（运行后生成）
+```bat
+git clone https://github.com/ww330115/goofish-mover.git
+cd goofish-mover
+python -m pip install -r app\requirements.txt
+python app\workbench.py
 ```
 
-## 🔒 隐私与安全
+The UI opens at `http://127.0.0.1:8765`. No `playwright install` needed — the tool
+drives the system Edge browser via channel.
 
-- 全部数据只落本机，程序无遥测、无云端依赖
-- `数据\浏览器资料\` 含闲鱼登录态，**不要随文件夹外传**
-- 导出器只读自己账号的两个接口，不搜索他人商品、不伪造设备、不绕滑块
-- 遇滑块/风控会停下等人工处理
+### Option 3: let an AI set it up
 
-## ⚠️ 免责声明
+Hand [`AGENT_GUIDE.md`](AGENT_GUIDE.md) (CN/EN) to any AI assistant — it contains the
+full deployment steps, API map, data layout and the hard rules the agent must follow
+(never exfiltrate `数据\`, never publish without your confirmation).
 
-本工具仅供管理**自己账号**的商品数据。使用前请了解：
+## Where your data lives
 
-- 闲鱼平台禁止未经授权的自动化操作与批量搬运，使用本工具可能违反平台用户协议，
-  存在商品下架、限流、封号等风险，**后果自负**
-- 请遵守所在法律法规，不得用于发布违禁品、侵权商品或虚假信息
-- 项目按现状提供，作者不对账号损失、数据丢失承担责任
+Everything is created and kept inside the toolkit folder (path configurable in
+`config.json`):
 
-## 📄 授权
+```
+数据\
+  收件箱\      exported ZIPs land here
+  项目\        one folder per account (listings, images, states)
+  发布包\      one folder per listing + publish script + published records
+  浏览器资料\  Edge profile holding the login session — never share it
+```
 
-- ✅ **允许**：个人免费下载、使用、修改，供自己搬家使用
-- ❌ **禁止**：转售、打包售卖、冒名发布、去除作者署名后二次分发
-- 项目按现状提供，作者不对账号或数据损失承担责任
+Original images and ZIPs are never modified; all results go to new folders.
 
-觉得好用的话，欢迎给个 ⭐ Star，这是对作者最好的支持。
+## Privacy & risk control
 
----
+- No telemetry, no cloud calls; the only network traffic is Goofish itself,
+  pip installs, and the Goofish publish API when you enable real publishing.
+- The exporter reads two endpoints of **your own** account only — it never searches
+  other people's listings, fakes devices, or bypasses captchas (it stops at sliders).
+- Publishing defaults to dry-run; real mode is rate-limited to 1 item/minute and
+  verifies each listing after posting.
 
-*该仓库的发布与授权方式可能随版本更新调整，以最新 Release 说明为准。*
+## Disclaimer
+
+This tool manages **your own account's** listings. Xianyu/Goofish prohibits
+unauthorized automation; using it may violate the platform terms and can lead to
+delisting or suspension — **at your own risk**. Comply with local laws.
+
+## License
+
+Free for personal use. Reselling, bundling for sale, or republishing under another
+name is not allowed — see [LICENSE](LICENSE). If you find it useful, a ⭐ Star is
+the best support.
